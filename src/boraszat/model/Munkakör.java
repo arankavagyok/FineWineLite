@@ -1,11 +1,11 @@
 package boraszat.model;
 
-public enum Szőlőtípusok {
-    CS ("Cabernet Sauvignon"), KFK ("Kékfrankos"), CSF ("Cserszegi Fűszeres"), BKV ("Bikavér"),;
+public enum Munkakör {
+    PM("Pincemunkás"), TKÓ("Takarító"), BR("Borász"), TKR("Titkár"), BŐ("Biztonsági őr");
     
     private final String displayName;
 
-    Szőlőtípusok(String displayName) {
+    Munkakör(String displayName) {
         this.displayName = displayName;
     }
 

@@ -15,14 +15,18 @@ public class KészBor{
     double liter;
     int db;
     double veszteség;
+    String érésKezd;
+    String palackozásDate;
         
-    public KészBor(String név, ÉrőBor éB, double alkohol, String cukor) {
+    public KészBor(String név, ÉrőBor éB, double alkohol, String cukor, String érés, String palackD) {
         this.név=név;
         szőlőTípus=éB.getSzőlőTípus();
         évjárat=éB.getÉvjárat();
         this.liter=éB.getLiter();
         this.alkohol=alkohol;
         this.cukor=cukor;
+        this.érésKezd=érés;
+        this.palackozásDate=palackD;
         setDB();
     }
     private void setDB(){
@@ -90,13 +94,31 @@ public class KészBor{
         return db;
     }
 
+    public String getÉrésKezd() {
+        return érésKezd;
+    }
+
+    public void setÉrésKezd(String érésKezd) {
+        this.érésKezd = érésKezd;
+    }
+
+    public void setPalackozásDate(String palackozásDate) {
+        this.palackozásDate = palackozásDate;
+    }
+
+    public String getPalackozásDate() {
+        return palackozásDate;
+    }
+
     public double getVeszteség() {
         return veszteség;
     }
 
     @Override
     public String toString() {
-        return "K\u00e9szBor{" + "n\u00e9v=" + név + ", sz\u0151l\u0151T\u00edpus=" + szőlőTípus + ", \u00e9vj\u00e1rat=" + évjárat + ", cukor=" + cukor + ", alkohol=" + alkohol + ", liter=" + liter + ", db=" + db + ", vesztes\u00e9g=" + veszteség + '}';
+        return "K\u00e9szBor{" + "n\u00e9v=" + név + ", sz\u0151l\u0151T\u00edpus=" + szőlőTípus + ", \u00e9vj\u00e1rat=" + évjárat + ", cukor=" + cukor + ", alkohol=" + alkohol + ", liter=" + liter + ", db=" + db + ", vesztes\u00e9g=" + veszteség + ", \u00e9r\u00e9sKezd=" + érésKezd + ", palackoz\u00e1sDate=" + palackozásDate + '}';
     }
+
+
     
 }

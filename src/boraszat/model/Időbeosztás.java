@@ -1,11 +1,11 @@
 package boraszat.model;
 
-public enum Szőlőtípusok {
-    CS ("Cabernet Sauvignon"), KFK ("Kékfrankos"), CSF ("Cserszegi Fűszeres"), BKV ("Bikavér"),;
+public enum Időbeosztás {
+    N("Nappali"), É("Éjszakai"),H("Hétvégi");
     
     private final String displayName;
 
-    Szőlőtípusok(String displayName) {
+    Időbeosztás(String displayName) {
         this.displayName = displayName;
     }
 

@@ -5,17 +5,18 @@
  */
 package boraszat;
 
-import boraszat.model.Bor;
+
 import boraszat.model.Tárolók;
 import boraszat.model.Agy;
+import boraszat.model.Időbeosztás;
 import boraszat.model.KészBor;
+import boraszat.model.Munkakör;
+import boraszat.model.Munkás;
 import boraszat.model.Szőlőtípusok;
 import boraszat.model.ÉrőBor;
 import com.google.gson.Gson;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import javafx.application.Application;
@@ -39,7 +40,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class Boraszat extends Application {
@@ -47,11 +47,15 @@ public class Boraszat extends Application {
     private Stage stageRef;
     TabPane tp = new TabPane();
     Tab újTételFelv = new Tab("Új tétel felvétele", tételFelv());
+    Tab újMunkásFelv = new Tab("Új munkás felvétele", munkásFelv());
+    Tab mMódosítás = new Tab("Adatmódosítás");
     Tab készTételRögz = new Tab("Kész tétel rögzítése");
     Tab tbÉrőBorok = new Tab("Érés alatti borok");
     Tab tbKészBorok = new Tab("Kész borok");
+    Tab tbMunkások = new Tab("Munkások");
     TableView<ÉrőBor> éBorTv = new TableView<>();
     TableView<KészBor> kBorTv = new TableView<>();
+    TableView<Munkás> mTv = new TableView<>();
     
     Group loginRoot = new Group();
     BorderPane root = new BorderPane();
@@ -60,8 +64,8 @@ public class Boraszat extends Application {
     
     Gson gson = new Gson();
             
-    Scene loginScene = new Scene(loginRoot,800,600);
-    Scene mainScene = new Scene(root,800,600);
+    Scene loginScene = new Scene(loginRoot,400,400);
+    Scene mainScene = new Scene(root,1000,600);
     
     @Override
     public void start(Stage primaryStage) {
@@ -69,7 +73,7 @@ public class Boraszat extends Application {
         
         stageRef = primaryStage;
         stageRef.setScene(loginScene);
-        stageRef.setTitle("Borászat");
+        stageRef.setTitle("FineWineLite");
         stageRef.setResizable(false);
         stageRef.show();
     }
@@ -129,35 +133,12 @@ public class Boraszat extends Application {
         tbKészBorok.setContent(készBorPane());
         tbÉrőBorok.setClosable(false);
         tbÉrőBorok.setContent(érőBorPane());
+        tbMunkások.setClosable(false);
+        tbMunkások.setContent(munkásokPane()); 
       
         tp.getTabs().add(tbKészBorok);
         tp.getTabs().add(tbÉrőBorok);
-        
-        éBorTv.setRowFactory((TableView<ÉrőBor> tv) -> {
-            final TableRow<ÉrőBor> row = new TableRow<>();
-            row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
-                final int index = row.getIndex();
-                if (index >= 0 && index < éBorTv.getItems().size() && éBorTv.getSelectionModel().isSelected(index)  ) {
-                    éBorTv.getSelectionModel().clearSelection();
-                    event.consume();
-                }
-            });
-            return row;  
-        });
-        
-        kBorTv.setRowFactory((TableView<KészBor> tv) -> {
-            final TableRow<KészBor> row = new TableRow<>();
-            row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
-                final int index = row.getIndex();
-                if (index >= 0 && index < kBorTv.getItems().size() && kBorTv.getSelectionModel().isSelected(index)  ) {
-                    kBorTv.getSelectionModel().clearSelection();
-                    event.consume();
-                }
-            });
-            return row;  
-        });  
-        
-        
+        tp.getTabs().add(tbMunkások);
        
         lbl_vlaami.setText(Controller.getInstance().login_code);
         VBox vbox = new VBox(lbl_vlaami);
@@ -259,10 +240,10 @@ public class Boraszat extends Application {
                 if(!txtIsntDouble && mennyiség<15 && mennyiség>6){
                     System.out.println("belép az atomba");
                
-//                KészBor kB = new KészBor(tfBorNév.getText(), agy.getÉToKBor(), Double.parseDouble(tfAlkTart.getText()), cbxCukor.getValue().toString());
-//                    System.out.println(kB);
-                agy.addKBor(tfBorNév.getText(),agy.getÉToKBor(), Double.parseDouble(tfAlkTart.getText()), cbxCukor.getValue().toString());
-                    System.out.println(agy.getKBor());
+                agy.addKBor(tfBorNév.getText(),agy.getÉToKBor(), Double.parseDouble(tfAlkTart.getText()),
+                            cbxCukor.getValue().toString(), lblÉrésKezdVal.getText(), getDateYMD());
+                
+                    System.out.println(agy.getKBor());          
                 
                 cbxCukor.setValue(null);
                 tfBorNév.clear();
@@ -273,24 +254,259 @@ public class Boraszat extends Application {
                 System.out.println("miafasz");
                 tp.getSelectionModel().select(tbKészBorok);
                 
+                agy.removeÉBor(éBorTv.getSelectionModel().getSelectedItem());
+                éBorTv.getItems().removeAll(éBorTv.getSelectionModel().getSelectedItems());             
+                éBorTv.getSelectionModel().clearSelection();
+                
                 kBorTv.getItems().clear();
                 tbKészBorok.setContent(készBorPane());
-
-//                String json = (gson.toJson(agy.getKBor()));
-//                    System.out.println("atom2");
-//            
-//            
-//                try (PrintWriter writer = new PrintWriter("keszborok.json")) {
-//                    writer.write(json);                
-//                
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-                
                 }                
         });
 
 
+        return grid;
+    }
+    
+    private GridPane mAdatMód(){
+        
+        GridPane grid = new GridPane();
+        
+        Label lblNév = new Label("Neve: ");
+        Label lblSzül = new Label("Születési dátum: ");
+        Label lblAnya = new Label("Anyja neve: ");
+        Label lblMunkak = new Label("Munkakör: ");
+        Label lblIdőB = new Label("Időbeosztás: ");
+        
+        TextField tfNév = new TextField(agy.getMMód().getNév());    
+        TextField tfSzül = new TextField(agy.getMMód().getSzülDate());
+        TextField tfAnya = new TextField(agy.getMMód().getAnyaNév());
+        String kezdDate = agy.getMMód().getMunkaKezd();
+        
+        ComboBox<Munkakör> cbxMunkak = new ComboBox<>();
+        cbxMunkak.getItems().setAll(Munkakör.values());
+        cbxMunkak.setValue(agy.getMMód().getMk());
+        
+        ComboBox<Időbeosztás> cbxIdőB = new ComboBox<>();
+        cbxIdőB.getItems().setAll(Időbeosztás.values());
+        cbxIdőB.setValue(agy.getMMód().getIdőB());
+        
+        Button btnMentés = new Button("Mentés");
+        Button btnMégse = new Button("Mégse");
+        
+        grid.add(lblNév, 0, 0);
+        grid.add(tfNév, 1, 0);
+        grid.add(lblSzül, 0, 1);
+        grid.add(tfSzül, 1, 1);
+        grid.add(lblAnya, 0, 2);
+        grid.add(tfAnya, 1, 2);
+        grid.add(lblMunkak, 0, 3);
+        grid.add(cbxMunkak, 1, 3);
+        grid.add(lblIdőB, 0, 4);
+        grid.add(cbxIdőB, 1, 4);
+        grid.add(btnMentés, 0, 6);
+        grid.add(btnMégse, 1, 6);
+        
+        btnMégse.setOnAction(action -> {
+            
+            agy.resetMMód();
+            
+            tfNév.clear();
+            tfSzül.clear();
+            tfAnya.clear();
+            cbxMunkak.setValue(null);
+            cbxIdőB.setValue(null);
+            
+            tp.getTabs().removeAll(mMódosítás);
+            System.out.println("miafasz");
+            tp.getSelectionModel().select(tbMunkások);
+            
+            mTv.getItems().clear();
+            tbMunkások.setContent(munkásokPane());
+            
+        });
+        
+        btnMentés.setOnAction(action ->{
+            
+            boolean tfDate=true;    
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                sdf.parse(tfSzül.getText());
+                tfDate=false;    
+                } catch (ParseException ex) {}
+  
+            if(!(agy.isString(tfNév.getText())) || tfNév.getText().trim().isEmpty()){  
+                
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Név számokat nem tartalmazhat vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(tfDate || tfSzül.getText().trim().isEmpty()){ 
+
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(!(agy.isString(tfAnya.getText())) || tfAnya.getText().trim().isEmpty()){
+                
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Anyja neve számokat nem tartalmazhat vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(cbxMunkak.getValue()==null){
+
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Munkakör nem lett megnevezve!");
+                
+                alert.showAndWait();
+                
+            } else if(cbxIdőB.getValue()==null){
+     
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Időbeosztás nem lett kiválasztva!");
+                
+                alert.showAndWait();
+            }
+            if(!(cbxIdőB.getValue()==null)){
+                System.out.println("lefutott");
+                
+                agy.removeM(mTv.getSelectionModel().getSelectedItem());
+                agy.resetMMód();;
+                
+                agy.addMunkás(tfNév.getText(), tfSzül.getText(), tfAnya.getText(), cbxMunkak.getValue(), cbxIdőB.getValue(), kezdDate);
+                
+                tfNév.clear();
+                tfSzül.clear();
+                tfAnya.clear();
+                cbxMunkak.setValue(null);
+                cbxIdőB.setValue(null);
+ 
+                tp.getTabs().removeAll(mMódosítás);
+                System.out.println("miafasz");
+                tp.getSelectionModel().select(tbMunkások);
+                
+                mTv.getItems().clear();
+                tbMunkások.setContent(munkásokPane());
+            }     
+        }); 
+        return grid;   
+    }
+    
+    private GridPane munkásFelv(){
+        
+        GridPane grid = new GridPane();
+        
+        Label lblNév = new Label("Neve: ");
+        Label lblSzül = new Label("Születési dátum: ");
+        Label lblAnya = new Label("Anyja neve: ");
+        Label lblMunkak = new Label("Munkakör: ");
+        Label lblIdőB = new Label("Időbeosztás: ");
+        
+        TextField tfNév = new TextField();
+        TextField tfSzül = new TextField();
+        TextField tfAnya = new TextField();
+        
+        ComboBox<Munkakör> cbxMunkak = new ComboBox<>();
+        cbxMunkak.getItems().setAll(Munkakör.values());
+        
+        ComboBox<Időbeosztás> cbxIdőB = new ComboBox<>();
+        cbxIdőB.getItems().setAll(Időbeosztás.values());
+        
+        Button btnMentés = new Button("Felvétel");
+        
+        
+        grid.add(lblNév, 0, 0);
+        grid.add(tfNév, 1, 0);
+        grid.add(lblSzül, 0, 1);
+        grid.add(tfSzül, 1, 1);
+        grid.add(lblAnya, 0, 2);
+        grid.add(tfAnya, 1, 2);
+        grid.add(lblMunkak, 0, 3);
+        grid.add(cbxMunkak, 1, 3);
+        grid.add(lblIdőB, 0, 4);
+        grid.add(cbxIdőB, 1, 4);
+        grid.add(btnMentés, 1, 5);
+        
+        btnMentés.setOnAction(action ->{
+            
+        boolean tfDate=true;    
+            
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            sdf.parse(tfSzül.getText());
+            tfDate=false;    
+            } catch (ParseException ex) {
+                
+            }
+  
+            if(!(agy.isString(tfNév.getText())) || tfNév.getText().trim().isEmpty()){  
+                
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Név számokat nem tartalmazhat vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(tfDate || tfSzül.getText().trim().isEmpty()){ 
+
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(!(agy.isString(tfAnya.getText())) || tfAnya.getText().trim().isEmpty()){
+                
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Anyja neve számokat nem tartalmazhat vagy a mező üres!");
+                
+                alert.showAndWait();
+                
+            } else if(cbxMunkak.getValue()==null){
+
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Munkakör nem lett megnevezve!");
+                
+                alert.showAndWait();
+                
+            } else if(cbxIdőB.getValue()==null){
+     
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Időbeosztás nem lett kiválasztva!");
+                
+                alert.showAndWait();
+            }
+            if(!(cbxIdőB.getValue()==null)){
+                System.out.println("lefutott");
+                agy.addMunkás(tfNév.getText(), tfSzül.getText(), tfAnya.getText(), cbxMunkak.getValue(), cbxIdőB.getValue(), getDateYMD());
+                
+                tfNév.clear();
+                tfSzül.clear();
+                tfAnya.clear();
+                cbxMunkak.setValue(null);
+                cbxIdőB.setValue(null);
+ 
+                tp.getTabs().removeAll(újMunkásFelv);
+                System.out.println("miafasz");
+                tp.getSelectionModel().select(tbMunkások);
+                
+                mTv.getItems().clear();
+                tbMunkások.setContent(munkásokPane());
+            }
+            
+        });
+        
         return grid;
     }
     
@@ -393,21 +609,6 @@ public class Boraszat extends Application {
                 éBorTv.getItems().clear();
                 tbÉrőBorok.setContent(érőBorPane());
             }
-
-//            ÉrőBor éB = new ÉrőBor(cbxSzőlő.getValue(), cbxÉvjárat.getValue(), cbxTár.getValue(), mennyiség, getDateYMD());
-            
-            
-            
-//            String json = (gson.toJson(agy.getéBor()));
-//            System.out.println("atom");
-//            
-//            
-//            try (PrintWriter writer = new PrintWriter("eroborok.json")) {
-//                writer.write(json);                
-//                
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }   
             });
         return grid;
     }
@@ -415,8 +616,6 @@ public class Boraszat extends Application {
     private StackPane készBorPane(){
         StackPane sp = new StackPane();
         
-        System.out.println(agy.getOKBorList());
-       
         kBorTv = agy.getKBorTableData();
         
         Button btnBármi = new Button("aaa");
@@ -424,6 +623,19 @@ public class Boraszat extends Application {
         HBox hb = new HBox(btnBármi);
         VBox vb = new VBox(kBorTv, hb);
         sp.getChildren().add(vb);
+        
+        kBorTv.setRowFactory((TableView<KészBor> tv) -> {
+            final TableRow<KészBor> row = new TableRow<>();
+            row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
+                final int index = row.getIndex();
+                if (index >= 0 && index < kBorTv.getItems().size() && kBorTv.getSelectionModel().isSelected(index)  ) {
+                    kBorTv.getSelectionModel().clearSelection();
+                    event.consume();
+                }
+            });
+            return row;  
+        });
+        
         
         return sp;
     }
@@ -451,8 +663,7 @@ public class Boraszat extends Application {
                             );
             készTételRögz.setContent(tételRögz());
             tp.getTabs().add(készTételRögz);
-            tp.getSelectionModel().select(készTételRögz);
-            éBorTv.getSelectionModel().clearSelection();            
+            tp.getSelectionModel().select(készTételRögz);           
         });
         
         Button btnDelTétel = new Button("Tétel törlése");
@@ -469,63 +680,74 @@ public class Boraszat extends Application {
         VBox vb = new VBox(éBorTv, hb);
         sp.getChildren().add(vb);
         
+        éBorTv.setRowFactory((TableView<ÉrőBor> tv) -> {
+            final TableRow<ÉrőBor> row = new TableRow<>();
+            row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
+                final int index = row.getIndex();
+                if (index >= 0 && index < éBorTv.getItems().size() && éBorTv.getSelectionModel().isSelected(index)  ) {
+                    éBorTv.getSelectionModel().clearSelection();
+                    event.consume();
+                }
+            });
+            return row;  
+        });
+        
         return sp;
     }
-//    
-//    private StackPane createView() {
-//        StackPane sp = new StackPane();
-//        Text t = new Text("text");
-//        Button b = new Button("b");
-//        Button tétel = new Button("Új tétel");
-//        
-//        tétel.setOnAction(action -> {
-//            
-//            tp.getTabs().add(újTételFelv);
-//            
-//        });
-//        
-//        TextField tf = new TextField();
-//        
-//        b.setOnAction(action -> {
-//            // general + kiir fajlba
-//            Bor [] borArr = new Bor[30];
-//            for (int i = 0; i < 30; i++) {
-//                borArr[i] = Bor.randomBor();
-//            }
-//            
-//            String json = (gson.toJson(borArr));
-//            
-//            try (PrintWriter writer = new PrintWriter("borok.json")) {
-//                writer.write(json);                
-//                
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            
-//        });
-//        
-//        Button b2 = new Button("kiir");
-//        b2.setOnAction(action -> {
-//            // beolvas fajlbol + kiir konzolra
-//            try (BufferedReader reader = new BufferedReader(new FileReader(new File("borok.json")))) {
-//                String s = "";
-//                String mind = "";
-//                while ((s = reader.readLine()) != null) {                    
-//                    mind += s;
-//                }
-//                
-//                Bor [] borok = gson.fromJson(mind, Bor[].class);
-//                
-//                for (Bor bs : borok) {
-//                    System.out.println(bs);
-//                }
-//                
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        HBox hbox = new HBox(t,b,b2,tf,tétel);
-//        sp.getChildren().add(hbox);
-//        return sp;
-//    }
+    
+    private StackPane munkásokPane(){
+        
+        StackPane sp = new StackPane();
+        
+        mTv = agy.getMunkásTableData();
+  
+        Button btnMÚj = new Button("Új munkás");
+        btnMÚj.setOnAction(action -> {        
+            tp.getTabs().add(újMunkásFelv);
+            tp.getSelectionModel().select(újMunkásFelv);
+        });
+        
+        Button btnMTörlés = new Button("Munkás törlése");
+        btnMTörlés.setOnAction(action -> {         
+                agy.removeM(mTv.getSelectionModel().getSelectedItem());
+                mTv.getItems().removeAll(mTv.getSelectionModel().getSelectedItems());
+                mTv.getSelectionModel().clearSelection();
+            });
+        
+        Button btnMMódosít = new Button("Adatmódosítás");
+        btnMMódosít.setOnAction(action -> {
+            agy.mAdatMód(mTv.getSelectionModel().getSelectedItem().getNév(),
+                         mTv.getSelectionModel().getSelectedItem().getSzülDate(),
+                         mTv.getSelectionModel().getSelectedItem().getAnyaNév(),
+                         mTv.getSelectionModel().getSelectedItem().getMk(),
+                         mTv.getSelectionModel().getSelectedItem().getIdőB(),
+                         mTv.getSelectionModel().getSelectedItem().getMunkaKezd()
+                            );
+            mMódosítás.setContent(mAdatMód());
+                      
+            tp.getTabs().add(mMódosítás);
+            tp.getSelectionModel().select(mMódosítás);
+        });
+        
+        btnMMódosít.disableProperty().bind(Bindings.isEmpty(mTv.getSelectionModel().getSelectedItems()));
+        btnMTörlés.disableProperty().bind(Bindings.isEmpty(mTv.getSelectionModel().getSelectedItems()));
+        
+        HBox hb = new HBox(btnMÚj, btnMTörlés, btnMMódosít);
+        VBox vb = new VBox(mTv, hb);        
+        sp.getChildren().add(vb);
+        
+        mTv.setRowFactory((TableView<Munkás> tv) -> {
+            final TableRow<Munkás> row = new TableRow<>();
+            row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
+                final int index = row.getIndex();
+                if (index >= 0 && index < mTv.getItems().size() && mTv.getSelectionModel().isSelected(index)  ) {
+                    mTv.getSelectionModel().clearSelection();
+                    event.consume();
+                }
+            });
+            return row;  
+        });  
+        
+        return sp;        
+    }
 }
