@@ -61,7 +61,8 @@ public class Agy {
         backUpData();
     }
     public boolean isString(String name) {
-        return name.matches("[a-zA-Z]+");
+//        return name.matches("[a-zA-Z]+");
+        return name.matches(".*[^\\x20-\\x7E].*");
     }
     public boolean validateDate(String date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
