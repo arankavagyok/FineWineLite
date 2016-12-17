@@ -17,8 +17,9 @@ public class KészBor{
     double veszteség;
     String érésKezd;
     String palackozásDate;
+    int ár;
         
-    public KészBor(String név, ÉrőBor éB, double alkohol, String cukor, String érés, String palackD) {
+    public KészBor(String név, ÉrőBor éB, double alkohol, String cukor, String érés, String palackD, int ár) {
         this.név=név;
         szőlőTípus=éB.getSzőlőTípus();
         évjárat=éB.getÉvjárat();
@@ -27,7 +28,16 @@ public class KészBor{
         this.cukor=cukor;
         this.érésKezd=érés;
         this.palackozásDate=palackD;
+        this.ár=ár;
         setDB();
+    }
+
+    public int getÁr() {
+        return ár;
+    }
+
+    public void setÁr(int ár) {
+        this.ár = ár;
     }
     private void setDB(){
         db=(int) (liter/0.75);

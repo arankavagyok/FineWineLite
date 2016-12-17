@@ -21,12 +21,15 @@ public class Agy {
     
     Gson gson = new Gson();
     
+    public int számlaSorSzám;
+    
     ArrayList<KészBor> kBor = new ArrayList<>();
     ArrayList<ÉrőBor> éBor = new ArrayList<>();
     ArrayList<Munkás> munkás = new ArrayList<>();
     
     Munkás mMód = new Munkás(null, null, null, null, null, null);
     ÉrőBor éToKBor = new ÉrőBor(null, null, null, 0, null);
+    KészBor eladKBor = new KészBor(null, new ÉrőBor(null, null, null, 0, null), 0, null, null, null, 0);
 //    KészBor kToÉBor = new KészBor(null, null, 0, null, null, null);
 
     public ÉrőBor getÉToKBor() {
@@ -35,11 +38,19 @@ public class Agy {
     public Munkás getMMód(){
         return mMód;
     }
+    public KészBor getEladBor(){
+        return eladKBor;
+    }
     
 //    public KészBor getKToÉBor(){
 //        return kToÉBor;
 //    }
     
+    public void resetEladKBor(){
+        this.eladKBor.setNév(null);
+        this.eladKBor.setDb(0);
+        this.eladKBor.setÁr(0);        
+    }
     public void resetÉToKBor(){
         this.éToKBor.setSzőlőTípus(null);
         this.éToKBor.setTárolás(null);
@@ -91,7 +102,6 @@ public class Agy {
         mMód.setMunkaKezd(kezd);
         
     }
-    
     public void tételÁtvitel(Szőlőtípusok szőlő, String évj, Tárolók tár, double menny, String kezdet){
         
         éToKBor.setLiter(menny);
@@ -100,6 +110,13 @@ public class Agy {
         éToKBor.setÉrésKezd(kezdet);
         éToKBor.setÉvjárat(évj);
     }
+    public void áruElad(String név, int db, int ár){
+        
+        eladKBor.setÁr(ár);
+        eladKBor.setDb(db);
+        eladKBor.setNév(név);
+    }
+    
     public TableView getKBorTableData(){
         
         TableView<KészBor> tvK = new TableView<>();
@@ -124,6 +141,8 @@ public class Agy {
             new TableColumn<>("Éréskezdete");
         TableColumn<KészBor, String> palackozásCol =
             new TableColumn<>("Palackozva");
+        TableColumn<KészBor, Integer> árCol =
+            new TableColumn<>("Ár/palack");
         
         névCol.setCellValueFactory(
             new PropertyValueFactory<>("név"));
@@ -145,9 +164,11 @@ public class Agy {
             new PropertyValueFactory<>("érésKezd"));
         palackozásCol.setCellValueFactory(
             new PropertyValueFactory<>("palackozásDate"));
+        árCol.setCellValueFactory(
+            new PropertyValueFactory<>("ár"));
         
         tvK.setItems(getOKBorList());
-        tvK.getColumns().addAll(névCol, szőlőCol, évCol, cukorCol, alkCol, litCol, palackCol, vesztCol, érésCol, palackozásCol);
+        tvK.getColumns().addAll(névCol, szőlőCol, évCol, cukorCol, alkCol, litCol, palackCol, vesztCol, érésCol, palackozásCol, árCol);
         
         return tvK;
     }
@@ -221,6 +242,9 @@ public class Agy {
     public void removeÉBor(ÉrőBor éB){
         éBor.remove(éB);
     }
+    public void removeKBor(KészBor kB){
+        kBor.remove(kB);
+    }
     public void removeM(Munkás m){
         munkás.remove(m);
     }
@@ -259,9 +283,9 @@ public class Agy {
        éBor.add(éB);
         
     }
-    public void addKBor(String név,ÉrőBor éb, double alk, String cuk, String érés, String palackD) {
+    public void addKBor(String név,ÉrőBor éb, double alk, String cuk, String érés, String palackD, int ár) {
         
-       KészBor kb = new KészBor(név, éb, alk, cuk, érés, palackD);
+       KészBor kb = new KészBor(név, éb, alk, cuk, érés, palackD, ár);
        kBor.add(kb);
     }
     
@@ -272,6 +296,13 @@ public class Agy {
         String dateYMD=(dtf.format(localDate));
         
         return dateYMD;
+    }
+    public int getSzámlaSorSzám() {
+        return számlaSorSzám;
+    }
+    
+    public void sorSzámLép(){
+        számlaSorSzám+=1;
     }
     
     private void backUpData(){
@@ -306,8 +337,17 @@ public class Agy {
         
         String jsonKBor = (gson.toJson(kBor));
         
-        try (PrintWriter writer = new PrintWriter("keszborok.json")) {
+        try (PrintWriter writer = new PrintWriter("data/keszborok.json")) {
                     writer.write(jsonKBor);                
+                
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        
+        String jsonSorSzám = (gson.toJson(számlaSorSzám));
+        
+        try (PrintWriter writer = new PrintWriter("data/szamlasorsz.json")) {
+                    writer.write(jsonSorSzám);                
                 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -315,7 +355,7 @@ public class Agy {
         
         String jsonÉBor = (gson.toJson(éBor));
       
-        try (PrintWriter writer = new PrintWriter("eroborok.json")) {
+        try (PrintWriter writer = new PrintWriter("data/eroborok.json")) {
                 writer.write(jsonÉBor);                
                 
             } catch (Exception e) {
@@ -332,7 +372,20 @@ public class Agy {
             }   
     }
     private void feltölt(){
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File("keszborok.json")))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("data/szamlasorsz.json")))) {
+            
+                String s = "";
+                String mind = "";
+                while ((s = reader.readLine()) != null) {                    
+                    mind += s;
+                }
+                
+                számlaSorSzám = gson.fromJson(mind, int.class);
+ 
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("data/keszborok.json")))) {
             
                 String s = "";
                 String mind = "";
@@ -345,7 +398,7 @@ public class Agy {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File("eroborok.json")))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("data/eroborok.json")))) {
             
                 String s = "";
                 String mind = "";
@@ -358,7 +411,7 @@ public class Agy {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File("munkas.json")))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("data/munkas.json")))) {
             
                 String s = "";
                 String mind = "";
@@ -373,4 +426,5 @@ public class Agy {
             }
     }
 }
+
 

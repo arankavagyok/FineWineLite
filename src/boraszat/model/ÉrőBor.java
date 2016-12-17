@@ -20,7 +20,7 @@ public class ÉrőBor {
         this.liter = mennyiség;
         this.érésKezd = érésKezd;
     }
-
+    
     public Szőlőtípusok getSzőlőTípus() {
         return szőlőTípus;
     }
