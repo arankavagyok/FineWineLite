@@ -26,12 +26,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -65,6 +61,7 @@ public class Boraszat extends Application {
     Tab tbÉrőBorok = new Tab("Érés alatti borok");
     Tab tbKészBorok = new Tab("Kész borok");
     Tab tbMunkások = new Tab("Munkások");
+    Tab tbKimutatás = new Tab("Kimutatások");
     TableView<ÉrőBor> éBorTv = new TableView<>();
     TableView<KészBor> kBorTv = new TableView<>();
     TableView<Munkás> mTv = new TableView<>();
@@ -92,8 +89,7 @@ public class Boraszat extends Application {
     @Override
     public void stop(){
         agy.saveData();
-        System.out.println("Stage is closing");
-        
+        System.out.println("Stage is closing");     
     }
     
     public String getDateYMD(){
@@ -147,10 +143,13 @@ public class Boraszat extends Application {
         tbÉrőBorok.setContent(érőBorPane());
         tbMunkások.setClosable(false);
         tbMunkások.setContent(munkásokPane()); 
+        tbKimutatás.setClosable(false);
+        tbKimutatás.setContent(kimutatásPane());
       
         tp.getTabs().add(tbKészBorok);
         tp.getTabs().add(tbÉrőBorok);
         tp.getTabs().add(tbMunkások);
+        tp.getTabs().add(tbKimutatás);
        
         lbl_vlaami.setText(Controller.getInstance().login_code);
         VBox vbox = new VBox(lbl_vlaami);
@@ -819,6 +818,8 @@ public class Boraszat extends Application {
         VBox vb = new VBox(kBorTv, hb);
         sp.getChildren().add(vb);
         
+        btnEladás.disableProperty().bind(Bindings.isEmpty(kBorTv.getSelectionModel().getSelectedItems()));
+        
         kBorTv.setRowFactory((TableView<KészBor> tv) -> {
             final TableRow<KészBor> row = new TableRow<>();
             row.addEventFilter(MouseEvent.MOUSE_PRESSED, (MouseEvent event) -> {
@@ -949,4 +950,14 @@ public class Boraszat extends Application {
         
         return sp;        
     }
+    
+    private StackPane kimutatásPane(){
+        
+        StackPane sp = new StackPane();
+        
+        ComboBox cbxKimutatás = new ComboBox();
+        
+        
+        return sp;
+    } 
 }

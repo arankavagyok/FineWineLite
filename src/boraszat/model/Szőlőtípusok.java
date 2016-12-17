@@ -1,7 +1,8 @@
 package boraszat.model;
 
 public enum Szőlőtípusok {
-    CS ("Cabernet Sauvignon"), KFK ("Kékfrankos"), CSF ("Cserszegi Fűszeres"), BKV ("Bikavér"),;
+    CS ("Cabernet Sauvignon"), KFK ("Kékfrankos"), CSF ("Cserszegi Fűszeres"), CBF ("Cabernet Franc"), 
+    SYR("Syrah"), MRL("Merlot"), IRS("Irsai Olivér"), KDK ("Kadarka"), CHR ("Chardonnay"), ORZ("Olaszrizling");
     
     private final String displayName;
 
