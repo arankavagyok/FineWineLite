@@ -957,7 +957,6 @@ public class Boraszat extends Application {
         
         ComboBox cbxKimutatás = new ComboBox();
         
-        
         return sp;
     } 
 }

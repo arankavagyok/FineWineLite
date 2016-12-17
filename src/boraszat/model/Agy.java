@@ -364,7 +364,7 @@ public class Agy {
         
         String jsonMunkás = (gson.toJson(munkás));
         
-        try (PrintWriter writer = new PrintWriter("munkas.json")) {
+        try (PrintWriter writer = new PrintWriter("data/munkas.json")) {
                 writer.write(jsonMunkás);                
                 
             } catch (Exception e) {
