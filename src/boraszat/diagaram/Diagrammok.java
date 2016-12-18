@@ -1,5 +1,6 @@
 package boraszat.diagaram;
 import boraszat.model.Agy;
+import boraszat.model.KészBor;
 import boraszat.model.Munkás;
 import boraszat.model.ÉrőBor;
 import java.util.ArrayList;
@@ -12,12 +13,14 @@ public class Diagrammok{
     
     ArrayList<Munkás> munkás = new ArrayList<>();
     ArrayList<ÉrőBor> éBor = new ArrayList<>();
+    ArrayList<KészBor> kBor = new ArrayList<>();
     Agy agy = new Agy();
 
     public Diagrammok() {
         
         munkás = agy.getMunkás();
         éBor = agy.getéBor();
+        kBor = agy.getKBor();
         
     }
 
@@ -206,6 +209,184 @@ public class Diagrammok{
         adat2016.getData().add(new XYChart.Data("Olaszrizling", orz2016));
 
         oszlopDia.getData().add(adat2016);
+        
+        return oszlopDia;
+    }
+    public BarChart createChartKBor(){
+        
+                CategoryAxis x  = new CategoryAxis();
+        x.setLabel("Szőlőtípus");
+
+        NumberAxis y = new NumberAxis();
+        y.setLabel("Mennyiség (liter)");
+
+        BarChart oszlopDia = new BarChart(x, y);
+
+        XYChart.Series száraz = new XYChart.Series();
+        száraz.setName("Száraz");
+        XYChart.Series félszáraz = new XYChart.Series();
+        félszáraz.setName("Félszáraz");
+        XYChart.Series félédes = new XYChart.Series();
+        félédes.setName("Félédes");
+        XYChart.Series édes = new XYChart.Series();
+        édes.setName("Édes");
+        
+        double kfkSzáraz = 0, csfSzáraz = 0, cbfSzáraz = 0, csSzáraz = 0, syrSzáraz = 0;
+        double mrlSzáraz = 0, irsSzáraz = 0, kdkSzáraz = 0, chrSzáraz = 0, orzSzáraz = 0;
+        
+        for (KészBor kB : kBor) {
+            if(kB.getSzőlőTípus().displayName().equals("Kékfrankos") && kB.getCukor().equals("<4 g/l Száraz")){
+                kfkSzáraz=kB.getLiter() +kfkSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cserszegi Fűszeres") && kB.getCukor().equals("<4 g/l Száraz")){
+                csfSzáraz=kB.getLiter() +csfSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Franc") && kB.getCukor().equals("<4 g/l Száraz")){
+                cbfSzáraz=kB.getLiter() +cbfSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Sauvignon") && kB.getCukor().equals("<4 g/l Száraz")){
+                csSzáraz=kB.getLiter() +csSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Syrah") && kB.getCukor().equals("<4 g/l Száraz")){
+                syrSzáraz=kB.getLiter() +syrSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Merlot") && kB.getCukor().equals("<4 g/l Száraz")){
+                mrlSzáraz=kB.getLiter() +mrlSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Irsai Olivér") && kB.getCukor().equals("<4 g/l Száraz")){
+                irsSzáraz=kB.getLiter() +irsSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Kadarka") && kB.getCukor().equals("<4 g/l Száraz")){
+                kdkSzáraz=kB.getLiter() +kdkSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Chardonnay") && kB.getCukor().equals("<4 g/l Száraz")){
+                chrSzáraz=kB.getLiter() +chrSzáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Olaszrizling") && kB.getCukor().equals("<4 g/l Száraz")){
+                orzSzáraz=kB.getLiter() +orzSzáraz;
+            }
+        }
+        száraz.getData().add(new XYChart.Data("Kékfrankos", kfkSzáraz));
+        száraz.getData().add(new XYChart.Data("Cserszegi Fűszeres", csfSzáraz));
+        száraz.getData().add(new XYChart.Data("Cabernet Franc", cbfSzáraz));
+        száraz.getData().add(new XYChart.Data("Cabernet Sauvignon", csSzáraz));
+        száraz.getData().add(new XYChart.Data("Syrah", syrSzáraz));
+        száraz.getData().add(new XYChart.Data("Merlot", mrlSzáraz));
+        száraz.getData().add(new XYChart.Data("Irsai Olivér", irsSzáraz));
+        száraz.getData().add(new XYChart.Data("Kadarka", kdkSzáraz));
+        száraz.getData().add(new XYChart.Data("Chardonnay", chrSzáraz));
+        száraz.getData().add(new XYChart.Data("Olaszrizling", orzSzáraz));
+
+        oszlopDia.getData().add(száraz);
+        
+        
+        double kfkFélszáraz = 0, csfFélszáraz = 0, cbfFélszáraz = 0, csFélszáraz = 0, syrFélszáraz = 0;
+        double mrlFélszáraz = 0, irsFélszáraz = 0, kdkFélszáraz = 0, chrFélszáraz = 0, orzFélszáraz = 0;
+
+        for (KészBor kB : kBor) {
+            if(kB.getSzőlőTípus().displayName().equals("Kékfrankos") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                kfkFélszáraz=kB.getLiter() +kfkFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cserszegi Fűszeres") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                csfFélszáraz=kB.getLiter() +csfFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Franc") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                cbfFélszáraz=kB.getLiter() +cbfFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Sauvignon") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                csFélszáraz=kB.getLiter() +csFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Syrah") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                syrFélszáraz=kB.getLiter() +syrFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Merlot") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                mrlFélszáraz=kB.getLiter() +mrlFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Irsai Olivér") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                irsFélszáraz=kB.getLiter() +irsFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Kadarka") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                kdkFélszáraz=kB.getLiter() +kdkFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Chardonnay") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                chrFélszáraz=kB.getLiter() +chrFélszáraz;
+            } else if(kB.getSzőlőTípus().displayName().equals("Olaszrizling") && kB.getCukor().equals("4-12 g/l Félszáraz")){
+                orzFélszáraz=kB.getLiter() +orzFélszáraz;
+            }
+        }
+        félszáraz.getData().add(new XYChart.Data("Kékfrankos", kfkFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Cserszegi Fűszeres", csfFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Cabernet Franc", cbfFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Cabernet Sauvignon", csFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Syrah", syrFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Merlot", mrlFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Irsai Olivér", irsFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Kadarka", kdkFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Chardonnay", chrFélszáraz));
+        félszáraz.getData().add(new XYChart.Data("Olaszrizling", orzFélszáraz));
+
+        oszlopDia.getData().add(félszáraz);
+        
+        double kfkFélédes = 0, csfFélédes = 0, cbfFélédes = 0, csFélédes = 0, syrFélédes = 0;
+        double mrlFélédes = 0, irsFélédes = 0, kdkFélédes = 0, chrFélédes = 0, orzFélédes = 0;
+        
+        for (KészBor kB : kBor) {
+            if(kB.getSzőlőTípus().displayName().equals("Kékfrankos") && kB.getCukor().equals("12-45 g/l Félédes")){
+                kfkFélédes=kB.getLiter() +kfkFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cserszegi Fűszeres") && kB.getCukor().equals("12-45 g/l Félédes")){
+                csfFélédes=kB.getLiter() +csfFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Franc") && kB.getCukor().equals("12-45 g/l Félédes")){
+                cbfFélédes=kB.getLiter() +cbfFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Sauvignon") && kB.getCukor().equals("12-45 g/l Félédes")){
+                csFélédes=kB.getLiter() +csFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Syrah") && kB.getCukor().equals("12-45 g/l Félédes")){
+                syrFélédes=kB.getLiter() +syrFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Merlot") && kB.getCukor().equals("12-45 g/l Félédes")){
+                mrlFélédes=kB.getLiter() +mrlFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Irsai Olivér") && kB.getCukor().equals("12-45 g/l Félédes")){
+                irsFélédes=kB.getLiter() +irsFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Kadarka") && kB.getCukor().equals("12-45 g/l Félédes")){
+                kdkFélédes=kB.getLiter() +kdkFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Chardonnay") && kB.getCukor().equals("12-45 g/l Félédes")){
+                chrFélédes=kB.getLiter() +chrFélédes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Olaszrizling") && kB.getCukor().equals("12-45 g/l Félédes")){
+                orzFélédes=kB.getLiter() +orzFélédes;
+            }
+        }
+        félédes.getData().add(new XYChart.Data("Kékfrankos", kfkFélédes));
+        félédes.getData().add(new XYChart.Data("Cserszegi Fűszeres", csfFélédes));
+        félédes.getData().add(new XYChart.Data("Cabernet Franc", cbfFélédes));
+        félédes.getData().add(new XYChart.Data("Cabernet Sauvignon", csFélédes));
+        félédes.getData().add(new XYChart.Data("Syrah", syrFélédes));
+        félédes.getData().add(new XYChart.Data("Merlot", mrlFélédes));
+        félédes.getData().add(new XYChart.Data("Irsai Olivér", irsFélédes));
+        félédes.getData().add(new XYChart.Data("Kadarka", kdkFélédes));
+        félédes.getData().add(new XYChart.Data("Chardonnay", chrFélédes));
+        félédes.getData().add(new XYChart.Data("Olaszrizling", orzFélédes));
+
+        oszlopDia.getData().add(félédes);
+        
+        double kfkÉdes = 0, csfÉdes = 0, cbfÉdes = 0, csÉdes = 0, syrÉdes = 0;
+        double mrlÉdes = 0, irsÉdes = 0, kdkÉdes = 0, chrÉdes = 0, orzÉdes = 0;
+        
+        for (KészBor kB : kBor) {
+            if(kB.getSzőlőTípus().displayName().equals("Kékfrankos") && kB.getCukor().equals(">45 g/l Édes")){
+                kfkÉdes=kB.getLiter() +kfkÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cserszegi Fűszeres") && kB.getCukor().equals(">45 g/l Édes")){
+                csfÉdes=kB.getLiter() +csfÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Franc") && kB.getCukor().equals(">45 g/l Édes")){
+                cbfÉdes=kB.getLiter() +cbfÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Cabernet Sauvignon") && kB.getCukor().equals(">45 g/l Édes")){
+                csÉdes=kB.getLiter() +csÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Syrah") && kB.getCukor().equals(">45 g/l Édes")){
+                syrÉdes=kB.getLiter() +syrÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Merlot") && kB.getCukor().equals(">45 g/l Édes")){
+                mrlÉdes=kB.getLiter() +mrlÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Irsai Olivér") && kB.getCukor().equals(">45 g/l Édes")){
+                irsÉdes=kB.getLiter() +irsÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Kadarka") && kB.getCukor().equals(">45 g/l Édes")){
+                kdkÉdes=kB.getLiter() +kdkÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Chardonnay") && kB.getCukor().equals(">45 g/l Édes")){
+                chrÉdes=kB.getLiter() +chrÉdes;
+            } else if(kB.getSzőlőTípus().displayName().equals("Olaszrizling") && kB.getCukor().equals(">45 g/l Édes")){
+                orzÉdes=kB.getLiter() +orzÉdes;
+            }
+        }
+        édes.getData().add(new XYChart.Data("Kékfrankos", kfkÉdes));
+        édes.getData().add(new XYChart.Data("Cserszegi Fűszeres", csfÉdes));
+        édes.getData().add(new XYChart.Data("Cabernet Franc", cbfÉdes));
+        édes.getData().add(new XYChart.Data("Cabernet Sauvignon", csÉdes));
+        édes.getData().add(new XYChart.Data("Syrah", syrÉdes));
+        édes.getData().add(new XYChart.Data("Merlot", mrlÉdes));
+        édes.getData().add(new XYChart.Data("Irsai Olivér", irsÉdes));
+        édes.getData().add(new XYChart.Data("Kadarka", kdkÉdes));
+        édes.getData().add(new XYChart.Data("Chardonnay", chrÉdes));
+        édes.getData().add(new XYChart.Data("Olaszrizling", orzÉdes));
+
+        oszlopDia.getData().add(édes);
         
         return oszlopDia;
     }

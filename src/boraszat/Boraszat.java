@@ -972,7 +972,8 @@ public class Boraszat extends Application {
         ComboBox cbxKimutatás = new ComboBox();
         cbxKimutatás.getItems().addAll(
                                 "Dolgozók időbeosztás szerint",
-                                "Érés alatti borok, faj és év szerint"
+                                "Érés alatti borok, faj és év szerint",
+                                "Készborok mennyiség és cukra"
         );
         cbxKimutatás.getSelectionModel().selectFirst();
         
@@ -987,6 +988,9 @@ public class Boraszat extends Application {
             }
             else if(cbxKimutatás.getValue().equals("Érés alatti borok, faj és év szerint")){
                 br.setCenter(dia.createChartÉBor());
+            }
+            else if(cbxKimutatás.getValue().equals("Készborok mennyiség és cukra")){
+                br.setCenter(dia.createChartKBor());
             }
         });
         
