@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
@@ -71,10 +72,67 @@ public class Agy {
         feltölt();
         backUpData();
     }
-    public boolean isString(String name) {
-//        return name.matches("[a-zA-Z]+");
-        return name.matches(".*[^\\x20-\\x7E].*");
+    public boolean isNév(String name) {
+        
+    return  name.matches("[a-zA-Z]+" + " " +".*[^\\x20-\\x7E].*") ||
+            name.matches("[a-zA-Z]+" + " " +"[a-zA-Z]+") ||
+            name.matches(".*[^\\x20-\\x7E].*" + " " +"[a-zA-Z]+") ||
+            name.matches(".*[^\\x20-\\x7E].*" + " " +".*[^\\x20-\\x7E].*");
+        
+        
+//        return name.matches("[a-zA-Z]+") || name.matches(".*[^\\x20-\\x7E].*");
     }
+    public boolean isRandomNév(String bor){
+        return bor.matches("[a-zA-Z]+") || bor.matches(".*[^\\x20-\\x7E].*");
+    }
+    public boolean isDátumValid(String date){
+        
+        boolean ok=true;
+        
+        String[]évHóNap = date.split("-");
+        String év = évHóNap[0];
+        int intÉv = Integer.parseInt(év);
+        String hó = évHóNap[1];
+        int intHó = Integer.parseInt(hó);
+        String nap = évHóNap[2];
+        int intNap = Integer.parseInt(nap);
+        
+        int aktÉv = Calendar.getInstance().get(Calendar.YEAR);
+ 
+        if (nap.equals("31") && ( 
+            hó.equals("4") || hó.equals("6") || hó.equals("9") ||
+            hó.equals("11") || hó.equals("04") || hó.equals("06") ||
+            hó.equals("09")
+            )){
+            ok = false; // csak 1,3,5,7,8,10,12
+	} else if (hó.equals("2") || hó.equals("02")) {
+                  //szökőév
+            if(intÉv % 4==0){
+		if(nap.equals("30") || nap.equals("31")){
+                    ok = false;
+		}else{
+                    ok = true;
+		}
+            }else{
+		if(nap.equals("29")||nap.equals("30")||nap.equals("31")){
+                    ok = false;
+		}else{
+                    ok = true;
+		 }
+            }
+        }      
+        if (intÉv>aktÉv){
+            ok = false;
+        }
+        if (intHó>12){
+            ok = false;
+        }
+        if (intNap>31){
+            ok = false;
+        }
+        return ok;
+    }
+    
     public boolean validateDate(String date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -128,11 +186,11 @@ public class Agy {
         TableColumn<KészBor, String> évCol = 
             new TableColumn<>("Évjárat");
         TableColumn<KészBor, String> cukorCol = 
-            new TableColumn<>("Cukor");
+            new TableColumn<>("Cukor g/l");
         TableColumn<KészBor, Double> alkCol =
-            new TableColumn<>("Alkohol"); 
+            new TableColumn<>("Alkohol %"); 
         TableColumn<KészBor, Double> litCol =
-            new TableColumn<>("Liter");
+            new TableColumn<>("Liter l");
         TableColumn<KészBor, Integer> palackCol =
             new TableColumn<>("Palack szám");
         TableColumn<KészBor, Double> vesztCol =

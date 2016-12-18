@@ -1,6 +1,7 @@
 package boraszat;
 
 
+import boraszat.diagaram.Diagrammok;
 import boraszat.model.Tárolók;
 import boraszat.model.Agy;
 import boraszat.model.Időbeosztás;
@@ -14,15 +15,18 @@ import com.google.gson.Gson;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -48,8 +52,8 @@ public class Boraszat extends Application {
     
     private Stage stageRef;
     TabPane tp = new TabPane();
-    Tab újTételFelv = new Tab("Új tétel felvétele", tételFelv());
-    Tab újMunkásFelv = new Tab("Új munkás felvétele", munkásFelv());
+    Tab újTételFelv = new Tab("Új tétel felvétele");
+    Tab újMunkásFelv = new Tab("Új munkás felvétele");
     Tab mMódosítás = new Tab("Adatmódosítás");
     Tab készTételRögz = new Tab("Kész tétel rögzítése");
     Tab áruElad = new Tab("Tétel eladása");
@@ -176,6 +180,7 @@ public class Boraszat extends Application {
                 "12-45 g/l Félédes",
                 ">45 g/l Édes"
         );
+        cbxCukor.getSelectionModel().selectFirst();
         
         Label lblTípVal = new Label();
         lblTípVal.setText(agy.getÉToKBor().getSzőlőTípus().displayName());
@@ -211,71 +216,81 @@ public class Boraszat extends Application {
 
         btnKészTételMentés.setOnAction(action ->{
             
-            boolean txtIsntDouble = true;
-            boolean txtIsntInt = true;
+            boolean alkoholJo = true;
+            boolean árJo = true;
+            boolean bor = false;
             Integer ár = -1;
             Double mennyiség = -1.0;
             
-            if(tfBorNév.getText().trim().isEmpty()){                
+            /* ÁR SZÁME*/
+            if (!(tfÁr.getText().trim().isEmpty())){
+                try {
+                    ár=Integer.parseInt(tfÁr.getText());
+                    System.out.println("An integer");
+                    árJo=false;                
+                }       
+                catch (NumberFormatException e) {    
+                } 
+            }
+            /* ALKOHOL SZÁME */
+            try {
+                    System.out.println("parse baj");
+                    mennyiség=Double.parseDouble(tfAlkTart.getText());
+                    alkoholJo=false;
+                }       
+                catch (NumberFormatException e) {
+                    
+                }
+            
+            if(tfBorNév.getText().trim().isEmpty()){
+                bor = true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("A bor nem kapott nevet!");                
                 alert.showAndWait();
-            } else if(cbxCukor.getValue()==null){                
+                
+            } else if(alkoholJo){
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Cukortartalom nem lett meghatározva!");
-                alert.showAndWait();   
-            } else if(txtIsntDouble || mennyiség<6 || mennyiség>15){
-                try {
-                    mennyiség=Double.parseDouble(tfAlkTart.getText());
-                    txtIsntDouble=false;
-                }       
-                catch (NumberFormatException e) {
-                    Alert alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Hibás mező!");
-                    alert.setHeaderText("Alkoholtartalom nem lett megadva, vagy nem helyes érték!");
+                alert.setHeaderText("Alkoholtartalom nem lett megadva, vagy nem helyes érték!");
+                alert.showAndWait();
                 
-                    alert.showAndWait(); 
-                }
-                    if(!txtIsntDouble && mennyiség<6.1 || mennyiség>14.9 ){
-                        System.out.println("belépett");
-                        System.out.println(mennyiség);
-                        Alert alert = new Alert(AlertType.ERROR);
-                        alert.setTitle("Hibás mező!");
-                        alert.setHeaderText("Az alkoholtartalomn 6 és 15 közötti értéket vár!");
+            } else if(!alkoholJo && (mennyiség<6.1 || mennyiség>14.9) ){
+                alkoholJo = true;
+                System.out.println("rossz alkohol");
+                System.out.println(mennyiség);
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Az alkoholtartalomn 6 és 15 közötti értéket vár!");
+                alert.showAndWait();
                 
-                        alert.showAndWait();
-                }
-            } else if(txtIsntInt || ár<0) {
-                try {
-                    ár=Integer.parseInt(tfÁr.getText());
-                    System.out.println("An integer");
-                    txtIsntInt=false;                
-                }       
-                catch (NumberFormatException e) {
-                    Alert alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Hibás mező!");
-                    alert.setHeaderText("Ár mező üres vagy nem szám!");
+            } else if(árJo || ár<0) {
+                System.out.println("ár nem jó");
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Ár mező üres vagy nem szám!");
+                alert.showAndWait();
                 
-                    alert.showAndWait(); 
-                }                
-                    if(!txtIsntInt && ár<1){
-                        Alert alert = new Alert(AlertType.ERROR);
-                        alert.setTitle("Hibás mező!");
-                        alert.setHeaderText("Ár nem lehet kisebb mint 0!");
+            } else if(!árJo && ár<1){
+                árJo = true;
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Ár nem lehet 0 vagy kisebb 0-nál!");
+                alert.showAndWait();  
                 
-                        alert.showAndWait();   
-                }
             }
-                    
-                if(!txtIsntDouble && mennyiség<15 && mennyiség>6){
-                    System.out.println("belép az atomba");
                
+            if(!alkoholJo && 
+                mennyiség<15 && 
+                mennyiség>6 &&
+                !bor    &&
+                !árJo
+                ){
+
                 agy.addKBor(tfBorNév.getText(),agy.getÉToKBor(), Double.parseDouble(tfAlkTart.getText()),
                             cbxCukor.getValue().toString(), lblÉrésKezdVal.getText(), getDateYMD(), Integer.parseInt(tfÁr.getText()));
                 
-                    System.out.println(agy.getKBor());          
+                System.out.println(agy.getKBor());          
                 
                 cbxCukor.setValue(null);
                 tfBorNév.clear();
@@ -283,7 +298,6 @@ public class Boraszat extends Application {
                 agy.resetÉToKBor();
                 
                 tp.getTabs().removeAll(készTételRögz);
-                System.out.println("miafasz");
                 tp.getSelectionModel().select(tbKészBorok);
                 
                 agy.removeÉBor(éBorTv.getSelectionModel().getSelectedItem());
@@ -359,7 +373,8 @@ public class Boraszat extends Application {
         
         btnMentés.setOnAction(action ->{
             
-            boolean tfDate=true;    
+            boolean tfDate=true;
+            boolean nev=false, date=false, anya=false;
             
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             try {
@@ -367,47 +382,47 @@ public class Boraszat extends Application {
                 tfDate=false;    
                 } catch (ParseException ex) {}
   
-            if(!(agy.isString(tfNév.getText())) || tfNév.getText().trim().isEmpty()){  
-                
+            if(!(agy.isNév(tfNév.getText())) || tfNév.getText().trim().isEmpty()){  
+                nev=true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Név számokat nem tartalmazhat vagy a mező üres!");
-                
                 alert.showAndWait();
                 
             } else if(tfDate || tfSzül.getText().trim().isEmpty()){ 
-
+                date=true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");
-                
+                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");    
                 alert.showAndWait();
                 
-            } else if(!(agy.isString(tfAnya.getText())) || tfAnya.getText().trim().isEmpty()){
+            } else if(!tfDate && !agy.isDátumValid(tfSzül.getText())){
+                date=true;
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Év-hónap-nap, nem naptár szerinti dátum!");            
+                alert.showAndWait();
                 
+            } else if(!(agy.isNév(tfAnya.getText())) || tfAnya.getText().trim().isEmpty()){
+                anya=true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Anyja neve számokat nem tartalmazhat vagy a mező üres!");
-                
                 alert.showAndWait();
                 
             } else if(cbxMunkak.getValue()==null){
-
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Munkakör nem lett megnevezve!");
-                
                 alert.showAndWait();
                 
             } else if(cbxIdőB.getValue()==null){
-     
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Időbeosztás nem lett kiválasztva!");
-                
                 alert.showAndWait();
             }
-            if(!(cbxIdőB.getValue()==null)){
+            if(!anya && !nev && !date){
                 System.out.println("lefutott");
                 
                 agy.removeM(mTv.getSelectionModel().getSelectedItem());
@@ -436,9 +451,9 @@ public class Boraszat extends Application {
         
         GridPane grid = new GridPane();
         
-        Label lblNév = new Label("Neve: ");
-        Label lblSzül = new Label("Születési dátum: ");
-        Label lblAnya = new Label("Anyja neve: ");
+        Label lblNév = new Label("Neve (Vezetéknév Keresztnév): ");
+        Label lblSzül = new Label("Születési dátum (év-hónap-nap): ");
+        Label lblAnya = new Label("Anyja neve (Vezetéknév Keresztnév): ");
         Label lblMunkak = new Label("Munkakör: ");
         Label lblIdőB = new Label("Időbeosztás: ");
         
@@ -448,12 +463,13 @@ public class Boraszat extends Application {
         
         ComboBox<Munkakör> cbxMunkak = new ComboBox<>();
         cbxMunkak.getItems().setAll(Munkakör.values());
+        cbxMunkak.getSelectionModel().selectFirst();
         
         ComboBox<Időbeosztás> cbxIdőB = new ComboBox<>();
         cbxIdőB.getItems().setAll(Időbeosztás.values());
+        cbxIdőB.getSelectionModel().selectFirst();
         
-        Button btnMentés = new Button("Felvétel");
-        
+        Button btnMentés = new Button("Felvétel");   
         
         grid.add(lblNév, 0, 0);
         grid.add(tfNév, 1, 0);
@@ -469,7 +485,8 @@ public class Boraszat extends Application {
         
         btnMentés.setOnAction(action ->{
             
-        boolean tfDate=true;    
+        boolean tfDate=true;
+        boolean nev=false, date=false, anya=false;
             
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         try {
@@ -478,48 +495,38 @@ public class Boraszat extends Application {
             } catch (ParseException ex) {
                 
             }
-  
-            if(!(agy.isString(tfNév.getText())) || tfNév.getText().trim().isEmpty()){  
-                
+            if(!(agy.isNév(tfNév.getText())) /*|| tfNév.getText().trim().isEmpty()*/){  
+                nev=true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Név számokat nem tartalmazhat vagy a mező üres!");
-                
                 alert.showAndWait();
                 
-            } else if(tfDate || tfSzül.getText().trim().isEmpty()){ 
-
+            } else if(tfDate/* || tfSzül.getText().trim().isEmpty()*/){ 
+                date=true;
+                System.out.println(sdf.toString());
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");
-                
+                alert.setHeaderText("Születési dátum nem felelmeg az előírásnak (év-hónap-nap) vagy a mező üres!");            
                 alert.showAndWait();
                 
-            } else if(!(agy.isString(tfAnya.getText())) || tfAnya.getText().trim().isEmpty()){
+            } else if(!tfDate && !agy.isDátumValid(tfSzül.getText())){
+                date=true;
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Év-hónap-nap, nem naptár szerinti dátum!");            
+                alert.showAndWait();
                 
+            } else if(!(agy.isNév(tfAnya.getText())) /*|| tfAnya.getText().trim().isEmpty()*/){
+                anya=true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Anyja neve számokat nem tartalmazhat vagy a mező üres!");
-                
                 alert.showAndWait();
                 
-            } else if(cbxMunkak.getValue()==null){
-
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Munkakör nem lett megnevezve!");
-                
-                alert.showAndWait();
-                
-            } else if(cbxIdőB.getValue()==null){
-     
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Időbeosztás nem lett kiválasztva!");
-                
-                alert.showAndWait();
             }
-            if(!(cbxIdőB.getValue()==null)){
+            
+            if(!anya && !nev && !date){
                 System.out.println("lefutott");
                 agy.addMunkás(tfNév.getText(), tfSzül.getText(), tfAnya.getText(), cbxMunkak.getValue(), cbxIdőB.getValue(), getDateYMD());
                 
@@ -535,10 +542,8 @@ public class Boraszat extends Application {
                 
                 mTv.getItems().clear();
                 tbMunkások.setContent(munkásokPane());
-            }
-            
-        });
-        
+            }  
+        });  
         return grid;
     }
     
@@ -553,9 +558,11 @@ public class Boraszat extends Application {
         
         ComboBox<Tárolók> cbxTár = new ComboBox<>();
         cbxTár.getItems().setAll(Tárolók.values());
+        cbxTár.getSelectionModel().selectFirst();
         
         ComboBox<Szőlőtípusok> cbxSzőlő = new ComboBox<>();
         cbxSzőlő.getItems().setAll(Szőlőtípusok.values());
+        cbxSzőlő.getSelectionModel().selectFirst();
         
         ComboBox<String> cbxÉvjárat = new ComboBox<>();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy");
@@ -563,6 +570,7 @@ public class Boraszat extends Application {
         Integer year = Integer.parseInt(dtf.format(localDate));
         Integer lastYear = year-1;
         cbxÉvjárat.getItems().setAll(year.toString(), lastYear.toString());
+        cbxÉvjárat.getSelectionModel().selectFirst();
         
         TextField tfMenny = new TextField();
         
@@ -583,28 +591,7 @@ public class Boraszat extends Application {
             boolean txtIsntInt=true;
             Integer mennyiség=-1;           
        
-            if(cbxSzőlő.getValue()==null){                
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Szőlőtípus nem kapott típust!");
-                
-                alert.showAndWait();
-                
-            } else if(cbxÉvjárat.getValue()==null){                
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Évjárat nem kapott értéket!");
-                
-                alert.showAndWait();
-                
-            } else if(cbxTár.getValue()==null){                
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Hibás mező!");
-                alert.setHeaderText("Tároló nem kapott típust!");
-                
-                alert.showAndWait();
-                
-            } else if(txtIsntInt || mennyiség<1){
+            if(txtIsntInt || mennyiség<1){
                 System.out.println("ideselépbe");
                 try {
                     mennyiség=Integer.parseInt(tfMenny.getText());
@@ -615,19 +602,18 @@ public class Boraszat extends Application {
                     Alert alert = new Alert(AlertType.ERROR);
                     alert.setTitle("Hibás mező!");
                     alert.setHeaderText("Mennyiség mező üres vagy nem szám!");
-                
                     alert.showAndWait(); 
                 }                
                     if(!txtIsntInt && mennyiség<1){
                         Alert alert = new Alert(AlertType.ERROR);
                         alert.setTitle("Hibás mező!");
                         alert.setHeaderText("Mennyiség nem lehet kisebb mint 0!");
-                
                         alert.showAndWait();   
                 }
             }
-            
-            if(!txtIsntInt && mennyiség>0){
+            if(!txtIsntInt 
+                && mennyiség>0
+                ){
                 agy.addÉBor(cbxSzőlő.getValue(), cbxÉvjárat.getValue(), cbxTár.getValue(), Integer.parseInt(tfMenny.getText()), getDateYMD());
                 
                 cbxSzőlő.setValue(null);
@@ -665,9 +651,9 @@ public class Boraszat extends Application {
         
         /* VEVŐ ADATOK */
         
-        Label lblVevőNév = new Label("Vevő neve: ");
-        Label lblVevőCím = new Label("Vevő címe: ");
-        Label lblVevőAdóSz = new Label("Vevő adszószáma: ");
+        Label lblVevőNév = new Label("Vevő neve(személy/cég): ");
+        Label lblVevőCím = new Label("Vevő címe(város): ");
+        Label lblVevőAdóSz = new Label("Vevő adószáma: ");
         Label lblVevőBankSz = new Label("Vevő bankszámlaszáma: ");
         
         TextField tfVNév = new TextField();
@@ -675,7 +661,7 @@ public class Boraszat extends Application {
         TextField tfVAdóSz = new TextField();
         TextField tfVBankSz = new TextField();
         
-        Button btnMentés = new Button("Felvétel");
+        Button btnMentés = new Button("Kész (számla készítése)");
         
         grid.add(lblNév, 0, 0);
         grid.add(lblDb, 0, 1);
@@ -703,57 +689,80 @@ public class Boraszat extends Application {
             
             boolean AdóSzIsntInt=true;
             boolean BankSzIsntInt=true;
-            boolean pipa = false;
+            boolean nev = false, cim = false;
             Integer mennyiség=-1;
             Integer mennyiség2=-1;
+            
+            /* SZÁME AZ ADÓSZ*/
+            try {
+                    Integer.parseInt(tfVAdóSz.getText());
+                    System.out.println("adoszam parseolva");
+                    AdóSzIsntInt=false;               
+                }       
+                catch (NumberFormatException e) {     
+                }
+            /* SZÁME A BANKSZ */
+            try {
+                    Integer.parseInt(tfVBankSz.getText());
+                    System.out.println("banksz parseolva");
+                    BankSzIsntInt=false;
+                }       
+                catch (NumberFormatException e) {
+                }
        
-            if(tfVNév.getText().trim().isEmpty()){                
+            if(tfVNév.getText().trim().isEmpty()){
+                nev = true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Vevő nevét kötelező kitölteni!");
-                
                 alert.showAndWait();
                 
-            } else if(tfVCím.getText().trim().isEmpty()){                
+            } else if(tfVCím.getText().trim().isEmpty() || !(agy.isRandomNév(tfVCím.getText()))){
+                cim = true;
                 Alert alert = new Alert(AlertType.ERROR);
                 alert.setTitle("Hibás mező!");
                 alert.setHeaderText("Vevő címét kötelező kitölteni!");
-                
                 alert.showAndWait();
                 
-            }  else if(AdóSzIsntInt || mennyiség<0){
+            }  else if(AdóSzIsntInt){
                 System.out.println("adoszam nemjo");
-                try {
-                    Integer.parseInt(tfVAdóSz.getText());
-                    System.out.println("An integer");
-                    AdóSzIsntInt=false;                
-                }       
-                catch (NumberFormatException e) {
-                    Alert alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Hibás mező!");
-                    alert.setHeaderText("Adószám mező üres vagy nem szám!");
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Adószám mező üres vagy nem szám!");
+                alert.showAndWait();
                 
-                    alert.showAndWait(); 
-                }   
-                if(BankSzIsntInt && !AdóSzIsntInt){     
+            }else  if(!(tfVAdóSz.getLength()==10) && !AdóSzIsntInt){
+                AdóSzIsntInt=true;
+                System.out.println("adoszam hossz hibe");
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Ádószámnak 10 karakter hosszúnak kell lennie!");
+                alert.showAndWait();
+                    
+            } else if(BankSzIsntInt){     
                 System.out.println("bankszam nemjo");
-                    try {
-                        Integer.parseInt(tfVBankSz.getText());
-                        System.out.println("An integer");
-                        BankSzIsntInt=false;
-                    }       
-                    catch (NumberFormatException e) {
-                        Alert alert = new Alert(AlertType.ERROR);
-                        alert.setTitle("Hibás mező!");
-                        alert.setHeaderText("Bankszámlaszám mező üres vagy nem szám!");
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Bankszámlaszám mező üres vagy nem szám!");
+                alert.showAndWait(); 
                 
-                        alert.showAndWait(); 
-                    }
-                }
-            }  
-            
-            if (!BankSzIsntInt && !AdóSzIsntInt){        
-
+            } else if(!(tfVBankSz.getLength()==8 && !BankSzIsntInt)){
+                System.out.println("bankszam hossz hibe");
+                BankSzIsntInt=true;
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Hibás mező!");
+                alert.setHeaderText("Bankszámlaszámnak 8 karakter hosszúnak!");
+                alert.showAndWait();
+                
+            }
+            if (!BankSzIsntInt && 
+                !AdóSzIsntInt &&
+                !cim &&
+                !nev
+                ){
+                
+                System.out.println("lefutott");
+                
                 try { 
                     Document doc = new Document();
                     PdfWriter.getInstance(doc, new FileOutputStream(new File("szamlak/szamla_sorsz_"+agy.getSzámlaSorSzám()+".pdf")));                 
@@ -769,8 +778,7 @@ public class Boraszat extends Application {
                 }
                 
                 agy.resetEladKBor();
-                agy.sorSzámLép();
-                
+         
                 tfVNév.clear();
                 tfVCím.clear();
                 tfVAdóSz.clear();
@@ -784,10 +792,16 @@ public class Boraszat extends Application {
                 
                 kBorTv.getItems().clear();
                 tbKészBorok.setContent(készBorPane()); 
-            }
                 
-        });
-         
+                Desktop de = Desktop.getDesktop();
+                
+                try {
+                        de.open(new File("szamlak/szamla_sorsz_"+agy.getSzámlaSorSzám()+".pdf"));
+                } catch (IOException e) {
+                }
+                agy.sorSzámLép();
+            }  
+        });   
         return grid;
     }
     
@@ -844,6 +858,7 @@ public class Boraszat extends Application {
         Button tétel = new Button("Új tétel");    
         tétel.setOnAction(action -> {        
             tp.getTabs().add(újTételFelv);
+            újTételFelv.setContent(tételFelv());
             tp.getSelectionModel().select(újTételFelv);
         });
         
@@ -899,7 +914,9 @@ public class Boraszat extends Application {
         Button btnMÚj = new Button("Új munkás");
         btnMÚj.setOnAction(action -> {        
             tp.getTabs().add(újMunkásFelv);
+            újMunkásFelv.setContent(munkásFelv());
             tp.getSelectionModel().select(újMunkásFelv);
+            
         });
         
         Button btnMTörlés = new Button("Munkás törlése");
@@ -946,12 +963,38 @@ public class Boraszat extends Application {
         return sp;        
     }
     
-    private StackPane kimutatásPane(){
+    private BorderPane kimutatásPane(){
         
-        StackPane sp = new StackPane();
+        BorderPane br = new BorderPane();
+        
+        Diagrammok dia = new Diagrammok();
         
         ComboBox cbxKimutatás = new ComboBox();
+        cbxKimutatás.getItems().addAll(
+                                "Dolgozók időbeosztás szerint",
+                                "Érés alatti borok, faj és év szerint"
+        );
+        cbxKimutatás.getSelectionModel().selectFirst();
         
-        return sp;
+        Button btnDiaKészít = new Button("Megjelenítés");
+        
+        btnDiaKészít.setOnAction(action -> {
+            
+            br.setCenter(null);
+            
+            if(cbxKimutatás.getValue().equals("Dolgozók időbeosztás szerint")){
+                br.setCenter(dia.createChartDolg());
+            }
+            else if(cbxKimutatás.getValue().equals("Érés alatti borok, faj és év szerint")){
+                br.setCenter(dia.createChartÉBor());
+            }
+        });
+        
+        VBox vb = new VBox(cbxKimutatás, btnDiaKészít);
+        vb.setAlignment(Pos.CENTER);
+        
+        br.setTop(vb);
+        
+        return br;
     } 
 }
