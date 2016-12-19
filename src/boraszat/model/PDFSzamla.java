@@ -71,11 +71,11 @@ public class PDFSzamla {
                 table.addCell("Név: JoBor Kft");
                 table.addCell("Név: " + vevőNév);
                 table.addCell("Cím (város): Budapest");
-                table.addCell("Cím (város):" + vevőCím);
+                table.addCell("Cím (város): " + vevőCím);
                 table.addCell("Adószám: 1234567891");
-                table.addCell("Adószám:"+ vevőAdóSz);
+                table.addCell("Adószám: "+ vevőAdóSz);
                 table.addCell("Bankszámla: 01234567");
-                table.addCell("Bankszámla:"+ vevőBankSz);
+                table.addCell("Bankszámla: "+ vevőBankSz);
 
                 category.add(table);
         }
